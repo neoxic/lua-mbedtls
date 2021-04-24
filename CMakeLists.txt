@@ -1,0 +1,65 @@
+cmake_minimum_required(VERSION 3.0)
+project(lua-mbedtls)
+
+set(USE_LUA_VERSION "" CACHE STRING "Build for Lua version 'X.Y' ('jit' for LuaJIT).")
+
+set(ver 5.1)
+if(USE_LUA_VERSION MATCHES "^[0-9]\\.[0-9]$")
+	set(ver ${USE_LUA_VERSION})
+	string(REGEX REPLACE "\\." "" ver_ ${USE_LUA_VERSION})
+	set(lua lua-${ver} lua${ver} lua${ver_})
+elseif(USE_LUA_VERSION STREQUAL "jit")
+	set(lua luajit)
+elseif(USE_LUA_VERSION STREQUAL "")
+	set(lua lua)
+else()
+	message(FATAL_ERROR "Unrecognized Lua version '${USE_LUA_VERSION}'")
+endif()
+
+find_package(PkgConfig)
+pkg_search_module(LUA REQUIRED ${lua})
+
+if(NOT LUA_FOUND)
+	message(FATAL_ERROR "Lua not found - set USE_LUA_VERSION to match your configuration")
+elseif(USE_LUA_VERSION STREQUAL "")
+	string(REGEX MATCH "^[0-9]\\.[0-9]" USE_LUA_VERSION ${LUA_VERSION})
+	message(STATUS "Using Lua '${USE_LUA_VERSION}', version ${LUA_VERSION} (set USE_LUA_VERSION to override)")
+	set(ver ${USE_LUA_VERSION})
+else()
+	message(STATUS "Using Lua '${USE_LUA_VERSION}', version ${LUA_VERSION}")
+endif()
+
+find_library(MBEDTLS_LIBRARY mbedtls)
+find_path(MBEDTLS_INCLUDE_DIR mbedtls/version.h)
+get_filename_component(MBEDTLS_LIBRARY_DIR ${MBEDTLS_LIBRARY} DIRECTORY)
+
+if(NOT MBEDTLS_LIBRARY_DIR OR NOT MBEDTLS_INCLUDE_DIR)
+	message(FATAL_ERROR "Mbed TLS not found")
+endif()
+
+add_definitions(-Wall -Wextra -Wpedantic -Wundef -Wshadow -Wredundant-decls
+	-Wstrict-prototypes -Wmissing-prototypes -Wno-variadic-macros)
+
+include_directories(${LUA_INCLUDE_DIRS} ${MBEDTLS_INCLUDE_DIR})
+link_directories(${MBEDTLS_LIBRARY_DIR})
+
+file(GLOB srcs src/*.c)
+add_library(lua-mbedtls SHARED ${srcs})
+target_link_libraries(lua-mbedtls mbedtls mbedcrypto mbedx509)
+set_target_properties(lua-mbedtls PROPERTIES OUTPUT_NAME mbedtls PREFIX "")
+if(APPLE)
+	target_link_libraries(lua-mbedtls "-undefined dynamic_lookup")
+	set_target_properties(lua-mbedtls PROPERTIES SUFFIX ".so")
+endif()
+
+include(GNUInstallDirs)
+install(TARGETS lua-mbedtls DESTINATION ${CMAKE_INSTALL_LIBDIR}/lua/${ver})
+
+enable_testing()
+find_program(LUA_COMMAND NAMES ${lua})
+file(GLOB tests test/test-*.lua)
+foreach(test ${tests})
+	string(REGEX REPLACE "^.*(test-[^/\\]+\\.lua)$" "\\1" name ${test})
+	add_test(${name} ${LUA_COMMAND} ${test})
+	set_tests_properties(${name} PROPERTIES ENVIRONMENT "LUA_CPATH=${CMAKE_BINARY_DIR}/?.so\;\;")
+endforeach()
