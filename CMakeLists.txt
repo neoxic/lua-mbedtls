@@ -37,8 +37,8 @@ if(NOT MBEDTLS_LIBRARY_DIR OR NOT MBEDTLS_INCLUDE_DIR)
 	message(FATAL_ERROR "Mbed TLS not found")
 endif()
 
-add_definitions(-Wall -Wextra -Wpedantic -Wundef -Wshadow -Wredundant-decls
-	-Wstrict-prototypes -Wmissing-prototypes -Wno-variadic-macros)
+add_definitions(-Wall -Wextra -Wpedantic -Wundef -Wshadow -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes
+	-Wno-variadic-macros -Wno-unused-result -Wno-unused-parameter)
 
 include_directories(${LUA_INCLUDE_DIRS} ${MBEDTLS_INCLUDE_DIR})
 link_directories(${MBEDTLS_LIBRARY_DIR})
