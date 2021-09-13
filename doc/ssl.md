@@ -35,7 +35,7 @@ Context Methods
 ---------------
 
 ### ctx:gettimeout()
-_DTLS only:_ Returns a fractional timeout value in seconds within which the previous unfinished operation (the one that returned either `want-read` or `want-write`) must be invoked again. In case no timeout is active, returns `nil`.
+_DTLS only:_ Returns a fractional timeout value in seconds within which the previous unfinished operation (the one that returned either `want-read` or `want-write`) must be invoked again. Returns `nil` if no timeout is active.
 
 ### ctx:setbio(rcb, wcb, [ref])
 Assigns new I/O callbacks and optional reference `ref` (see `ssl.newcontext()`).

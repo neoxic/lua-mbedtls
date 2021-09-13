@@ -231,9 +231,9 @@ static int m_setbio(lua_State *L) {
 static int m_setpeerid(lua_State *L) {
 	Context *ctx = checkcontext(L, 1);
 	size_t len;
-	const unsigned char *peerid = checkdata(L, 2, &len);
+	const unsigned char *buf = checkdata(L, 2, &len);
 	checkopsup(L, ctx->cfg->mode == 3, 1); /* DTLS server only */
-	checkresult(L, mbedtls_ssl_set_client_transport_id(&ctx->ssl, peerid, len));
+	checkresult(L, mbedtls_ssl_set_client_transport_id(&ctx->ssl, buf, len));
 	return 0;
 }
 
