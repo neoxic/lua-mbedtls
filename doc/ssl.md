@@ -56,7 +56,7 @@ Attempts to read at most `size` bytes from the secure channel and returns the da
 ### ctx:write(data, [pos], [len])
 Attempts to write `data` bytes to the secure channel and returns the number of bytes actually written. On error, returns `nil` and the error message. Optional `pos` marks the beginning of data (default is 1). Optional `len` marks the size of data (default is `#data - pos + 1`).
 
-### ctx:close()
+### ctx:closenotify()
 Sends a _CloseNotify_ message to the peer indicating an intent to gracefully shut down the secure channel.
 
 ### ctx:reset()
@@ -73,7 +73,7 @@ The following errors are non-fatal, i.e. they do not reset a context and are exp
 | `invalid operation` | Invalid arguments/configuration for the operation.       |
 | `want-read`         | The underlying transport is not ready for reading.       |
 | `want-write`        | The underlying transport is not ready for writing.       |
-| `closed`            | A _CloseNotify_ message has been received from the peer. |
+| `close-notify`      | A _CloseNotify_ message has been received from the peer. |
 
 All other errors are fatal and implicitly reset a context thus making it suitable for a new session.
 

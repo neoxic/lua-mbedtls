@@ -190,7 +190,7 @@ static int unpincontext(lua_State *L, Context *ctx, int res) {
 		return -1;
 	}
 	if (res == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) {
-		lua_pushliteral(L, "closed");
+		lua_pushliteral(L, "close-notify");
 		return -1;
 	}
 	checkresult(L, mbedtls_ssl_session_reset(&ctx->ssl));
@@ -284,7 +284,7 @@ static int m_write(lua_State *L) {
 }
 
 /* RES: true | nil, error */
-static int m_close(lua_State *L) {
+static int m_closenotify(lua_State *L) {
 	Context *ctx = checkcontext(L, 1);
 	pincontext(L, ctx, 1);
 	if (unpincontext(L, ctx, mbedtls_ssl_close_notify(&ctx->ssl))) return 2;
@@ -313,7 +313,7 @@ static const luaL_Reg t_context[] = {
 	{"handshake", m_handshake},
 	{"read", m_read},
 	{"write", m_write},
-	{"close", m_close},
+	{"closenotify", m_closenotify},
 	{"reset", m_reset},
 	{"__gc", m__gc},
 	{0, 0}

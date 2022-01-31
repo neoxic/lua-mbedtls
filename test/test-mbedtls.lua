@@ -62,11 +62,11 @@ local function testbio(ctx1, ctx2)
 	assert(select(2, ctx1:read(10)) == 'want-read')
 	assert(ctx1:write('abc') == 3)
 	assert(ctx1:write('defg') == 4)
-	assert(ctx1:close())
+	assert(ctx1:closenotify())
 
 	assert(ctx2:read(10) == 'abc')
 	assert(ctx2:read(10) == 'defg')
-	assert(select(2, ctx2:read(10)) == 'closed')
+	assert(select(2, ctx2:read(10)) == 'close-notify')
 
 	ctx1:reset()
 	ctx2:reset()
