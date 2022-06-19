@@ -237,6 +237,14 @@ static int m_setpeerid(lua_State *L) {
 	return 0;
 }
 
+/* ARG: host name */
+static int m_sethostname(lua_State *L) {
+	Context *ctx = checkcontext(L, 1);
+	const unsigned char *buf = checkdata(L, 2, NULL);
+	checkresult(L, mbedtls_ssl_set_hostname(&ctx->ssl, (const char *)buf));
+	return 0;
+}
+
 /* RES: true | nil, error */
 static int m_handshake(lua_State *L) {
 	Context *ctx = checkcontext(L, 1);
@@ -310,6 +318,7 @@ static const luaL_Reg t_context[] = {
 	{"gettimeout", m_gettimeout},
 	{"setbio", m_setbio},
 	{"setpeerid", m_setpeerid},
+	{"sethostname", m_sethostname},
 	{"handshake", m_handshake},
 	{"read", m_read},
 	{"write", m_write},
@@ -492,15 +501,6 @@ static int f_newcontext(lua_State *L) {
 	return 1;
 }
 
-/* ARG: ctx, hostname
-** RES: true | false */
-static int f_sethostname(lua_State *L) {
-	Context *cfg = luaL_checkudata(L, 1, TYPE_SSL_CONTEXT);
-	checknonil(L, 2);
-	lua_pushboolean(L, !mbedtls_ssl_set_hostname(&cfg->ssl, (const char *)lua_tostring(L, 2)));
-	return 1;
-}
-
 /* ARG: peerid
 ** RES: cookie */
 static int f_getcookie(lua_State *L) {
@@ -532,7 +532,6 @@ static int f_checkcookie(lua_State *L) {
 static const luaL_Reg l_ssl[] = {
 	{"newconfig", f_newconfig},
 	{"newcontext", f_newcontext},
-	{"sethostname", f_sethostname},
 	{"getcookie", f_getcookie},
 	{"checkcookie", f_checkcookie},
 	{0, 0}
