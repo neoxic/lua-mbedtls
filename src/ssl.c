@@ -237,6 +237,15 @@ static int m_setpeerid(lua_State *L) {
 	return 0;
 }
 
+/* ARG: [hostname] */
+static int m_sethostname(lua_State *L) {
+	Context *ctx = checkcontext(L, 1);
+	const char *hostname = luaL_optstring(L, 2, 0);
+	checkopsup(L, !(ctx->cfg->mode & 1), 1); /* Client only */
+	checkresult(L, mbedtls_ssl_set_hostname(&ctx->ssl, hostname));
+	return 0;
+}
+
 /* RES: true | nil, error */
 static int m_handshake(lua_State *L) {
 	Context *ctx = checkcontext(L, 1);
@@ -310,6 +319,7 @@ static const luaL_Reg t_context[] = {
 	{"gettimeout", m_gettimeout},
 	{"setbio", m_setbio},
 	{"setpeerid", m_setpeerid},
+	{"sethostname", m_sethostname},
 	{"handshake", m_handshake},
 	{"read", m_read},
 	{"write", m_write},

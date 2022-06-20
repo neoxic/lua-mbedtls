@@ -43,6 +43,9 @@ Assigns new I/O callbacks and optional reference `ref` (see `ssl.newcontext()`).
 ### ctx:setpeerid(peerid)
 _DTLS server only._ Sets `peerid` as a peer's identity on the underlying transport, e.g. a string `address#port` for UDP. This identity is then used to verify a _ClientHello_ message as part of a DTLS handshake.
 
+### ctx:sethostname([hostname])
+ _Client only._ Sets `hostname` (or resets if `nil`) to check against the received server certificate. It sets the ServerName TLS extension too if that extension is enabled.
+
 ### ctx:handshake()
 Performs a handshake and returns `true` when finished. On error, returns `nil` and the error message.
 

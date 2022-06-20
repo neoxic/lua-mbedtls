@@ -58,6 +58,10 @@ local cfg2 = ssl.newconfig('tls-server')
 local ctx1 = ssl.newcontext(cfg1, read1, write1, ref)
 local ctx2 = ssl.newcontext(cfg2, read2, write2)
 
+assert(not pcall(ctx1.setpeerid, ctx1, 'abc'))
+assert(not pcall(ctx2.setpeerid, ctx2, 'abc'))
+assert(not pcall(ctx2.sethostname, ctx2, 'abc'))
+
 local function testbio(ctx1, ctx2)
 	assert(select(2, ctx1:read(10)) == 'want-read')
 	assert(ctx1:write('abc') == 3)
@@ -76,6 +80,8 @@ local function testbio(ctx1, ctx2)
 end
 
 for i = 1, 2 do
+	ctx1:sethostname()
+	ctx1:sethostname('abc')
 	repeat
 		local ok1, err1 = ctx1:handshake()
 		local ok2, err2 = ctx2:handshake()
@@ -95,8 +101,12 @@ local cfg2 = ssl.newconfig('dtls-server')
 local ctx1 = ssl.newcontext(cfg1, read1, write1, ref)
 local ctx2 = ssl.newcontext(cfg2, read2, write2)
 
-for i = 1, 2 do
-	ctx2:setpeerid('abc')
+assert(not pcall(ctx1.setpeerid, ctx1, 'abc'))
+assert(not pcall(ctx2.sethostname, ctx2, 'abc'))
+
+for i = 1, 1 do
+	ctx1:sethostname()
+	ctx1:sethostname('abc')
 	local verified
 	repeat
 		local ok1, err1 = ctx1:handshake()
