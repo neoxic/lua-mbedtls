@@ -26,7 +26,7 @@
 #include <mbedtls/error.h>
 
 #define MODNAME "lua-mbedtls"
-#define VERSION "0.2.0"
+#define VERSION "0.2.1"
 
 #define checkdata(L, arg, len) (const unsigned char *)luaL_checklstring(L, arg, len)
 #define checknonil(L, arg) luaL_argcheck(L, !lua_isnoneornil(L, arg), arg, "value is nil")
