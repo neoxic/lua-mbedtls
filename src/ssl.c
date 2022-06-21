@@ -237,10 +237,11 @@ static int m_setpeerid(lua_State *L) {
 	return 0;
 }
 
-/* ARG: [hostname] */
+/* ARG: hostname */
 static int m_sethostname(lua_State *L) {
 	Context *ctx = checkcontext(L, 1);
 	const char *hostname = luaL_optstring(L, 2, 0);
+	luaL_checkany(L, 2);
 	checkopsup(L, !(ctx->cfg->mode & 1), 1); /* Client only */
 	checkresult(L, mbedtls_ssl_set_hostname(&ctx->ssl, hostname));
 	return 0;

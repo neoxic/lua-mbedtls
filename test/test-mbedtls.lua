@@ -80,7 +80,7 @@ local function testbio(ctx1, ctx2)
 end
 
 for i = 1, 2 do
-	ctx1:sethostname()
+	ctx1:sethostname(nil)
 	ctx1:sethostname('abc')
 	repeat
 		local ok1, err1 = ctx1:handshake()
@@ -105,7 +105,7 @@ assert(not pcall(ctx1.setpeerid, ctx1, 'abc'))
 assert(not pcall(ctx2.sethostname, ctx2, 'abc'))
 
 for i = 1, 1 do
-	ctx1:sethostname()
+	ctx1:sethostname(nil)
 	ctx1:sethostname('abc')
 	local verified
 	repeat
