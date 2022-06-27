@@ -26,15 +26,23 @@
 #else
 #include <sys/time.h>
 #endif
+#include <mbedtls/version.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
-#include <mbedtls/certs.h>
+#include <mbedtls/pk.h>
 #include <mbedtls/x509.h>
 #include <mbedtls/ssl.h>
 #include "mbedtls/ssl_cookie.h"
 #include <mbedtls/base64.h>
 #include "common.h"
 #include "defcert.h"
+
+#if MBEDTLS_VERSION_MAJOR < 3
+#define MBEDTLS_PRIVATE(name) name
+#define mbedtls_pk_parse_keyfile(ctx, path, pwd, f_rng, p_rng) mbedtls_pk_parse_keyfile(ctx, path, pwd)
+#define mbedtls_pk_parse_key(ctx, key, keylen, pwd, pwdlen, f_rng, p_rng) mbedtls_pk_parse_key(ctx, key, keylen, pwd, pwdlen)
+#define mbedtls_pk_check_pair(pub, prv, f_rng, p_rng) mbedtls_pk_check_pair(pub, prv)
+#endif
 
 #define TYPE_SSL_BASE "mbedtls.ssl.base"
 #define TYPE_SSL_CONFIG "mbedtls.ssl.config"
@@ -143,12 +151,12 @@ static int f_newconfig(lua_State *L) {
 	}
 	if (cert) {
 		if (mbedtls_x509_crt_parse_file(&cfg->cert, cert)) return luaL_error(L, "%s: can't parse certificate", cert);
-		if (mbedtls_pk_parse_keyfile(&cfg->pkey, cert, "")) return luaL_error(L, "%s: can't parse private key", cert);
-		if (mbedtls_pk_check_pair(&cfg->cert.pk, &cfg->pkey)) return luaL_error(L, "%s: certificate/private key mismatch", cert);
+		if (mbedtls_pk_parse_keyfile(&cfg->pkey, cert, "", mbedtls_ctr_drbg_random, &base->drbg)) return luaL_error(L, "%s: can't parse private key", cert);
+		if (mbedtls_pk_check_pair(&cfg->cert.pk, &cfg->pkey, mbedtls_ctr_drbg_random, &base->drbg)) return luaL_error(L, "%s: certificate/private key mismatch", cert);
 		checkresult(L, mbedtls_ssl_conf_own_cert(&cfg->conf, &cfg->cert, &cfg->pkey));
 	} else if (mode & 1) { /* Use default certificate in server mode */
 		checkresult(L, mbedtls_x509_crt_parse(&cfg->cert, defcert, sizeof defcert));
-		checkresult(L, mbedtls_pk_parse_key(&cfg->pkey, defpkey, sizeof defpkey, 0, 0));
+		checkresult(L, mbedtls_pk_parse_key(&cfg->pkey, defpkey, sizeof defpkey, 0, 0, mbedtls_ctr_drbg_random, &base->drbg));
 		checkresult(L, mbedtls_ssl_conf_own_cert(&cfg->conf, &cfg->cert, &cfg->pkey));
 	}
 	return 1;
@@ -252,9 +260,9 @@ static int m_handshake(lua_State *L) {
 	Context *ctx = checkcontext(L, 1);
 	int res = 0;
 	pincontext(L, ctx, 1);
-	while (ctx->ssl.state != MBEDTLS_SSL_HANDSHAKE_OVER) {
+	while (ctx->ssl.MBEDTLS_PRIVATE(state) != MBEDTLS_SSL_HANDSHAKE_OVER) {
 		if ((res = mbedtls_ssl_handshake_step(&ctx->ssl))) break;
-		if (ctx->ssl.state == MBEDTLS_SSL_SERVER_HELLO_DONE && ctx->cfg->mode == 3) break; /* DTLS server only */
+		if (ctx->ssl.MBEDTLS_PRIVATE(state) == MBEDTLS_SSL_SERVER_HELLO_DONE && ctx->cfg->mode == 3) break; /* DTLS server only */
 	}
 	if (unpincontext(L, ctx, res)) return 2;
 	lua_pushboolean(L, 1);
